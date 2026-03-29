@@ -1,0 +1,7 @@
+Fake.csv
+Real.csv
+*.csv
+casestudy/
+venv/
+__pycache__/
+outputs/
