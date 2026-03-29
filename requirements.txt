@@ -1,4 +1,4 @@
-# Fake News Detection – Python Dependencies
+# Fake News Detection - Complete Dependencies
 # Install with: pip install -r requirements.txt
 
 # Core data science
@@ -16,6 +16,9 @@ gensim>=4.3.0          # Optional: for Word2Vec
 # Deep learning
 tensorflow>=2.12.0     # Includes Keras; for BiLSTM
 
-# Visualisation
+# Visualization
 matplotlib>=3.6.0
 seaborn>=0.12.0
+
+# Web framework (for dashboard)
+streamlit>=1.28.0

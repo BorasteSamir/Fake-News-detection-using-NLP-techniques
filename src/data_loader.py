@@ -17,7 +17,7 @@ OUTPUT_DIR = "outputs"
 os.makedirs(OUTPUT_DIR, exist_ok=True)
 
 
-def load_data(fake_path: str = r"c:\Users\lenovo\Downloads\fake and real news project\fake.csv", real_path: str = r"c:\Users\lenovo\Downloads\fake and real news project\real.csv") -> pd.DataFrame:
+def load_data(fake_path: str = "data/Fake.csv", real_path: str = "data/Real.csv") -> pd.DataFrame:
     """
     Load fake and real news CSV files, assign labels, and merge into one DataFrame.
 

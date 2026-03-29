@@ -1,58 +1,46 @@
 """
 main.py
 =======
-Orchestrates the complete Fake News Detection NLP pipeline.
+Main orchestrator for the Fake News Detection pipeline.
+
+This script runs the complete end-to-end pipeline:
+1. Data loading and EDA
+2. Text preprocessing
+3. Feature engineering
+4. Model training and evaluation
+5. Visualization and comparison
+6. Model saving for dashboard
 
 Run from terminal:
     python main.py
-
-Pipeline stages:
-    1.  Load Data & EDA
-    2.  Preprocessing
-    3.  Feature Engineering  (BoW + TF-IDF)
-    4.  Model Training       (LR, NB, SVM, RF, BiLSTM)
-    5.  Evaluation
-    6.  Comparative Analysis
-    7.  Visualisation
 """
 
 import os
+import sys
 import warnings
 import time
+
+# Add src directory to path
+sys.path.append(os.path.join(os.path.dirname(__file__), 'src'))
 
 warnings.filterwarnings("ignore")
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"
 
-# ── Project modules ────────────────────────────────────────────────────────
-from data_loader       import load_data, split_data, perform_eda
-from preprocessing     import preprocess_series, check_class_imbalance
-from feature_engineering import get_bow_features, get_tfidf_features
-from models import (
-    train_logistic_regression,
-    train_naive_bayes,
-    train_svm,
-    train_random_forest,
-    train_lstm
-)
-from evaluation import evaluate_model, build_comparison_table, print_comparison_table
-from visualization import (
-    plot_confusion_matrix,
-    plot_all_confusion_matrices,
-    plot_model_comparison,
-    plot_wordclouds,
-    plot_lstm_history
+# Import project modules
+from data_loader import load_data, split_data, perform_eda
+from preprocess import preprocess_series, check_class_imbalance
+from features import get_bow_features, get_tfidf_features
+from train import (
+    train_logistic_regression, train_naive_bayes, train_svm, 
+    train_random_forest, train_lstm, evaluate_model, 
+    build_comparison_table, print_comparison_table,
+    plot_confusion_matrix, plot_all_confusion_matrices,
+    plot_model_comparison, plot_wordclouds, plot_lstm_history,
+    save_best_model, banner
 )
 
 OUTPUT_DIR = "outputs"
 os.makedirs(OUTPUT_DIR, exist_ok=True)
-
-
-def banner(text: str) -> None:
-    """Print a section banner to the console."""
-    line = "═" * 65
-    print(f"\n{line}")
-    print(f"  {text}")
-    print(f"{line}")
 
 
 def main():
@@ -63,7 +51,7 @@ def main():
     # ══════════════════════════════════════════════════════════════════════
     banner("STAGE 1 – DATA LOADING & EXPLORATORY DATA ANALYSIS")
 
-    df = load_data(fake_path="fake.csv", real_path="real.csv")
+    df = load_data()
     perform_eda(df)
 
     # ══════════════════════════════════════════════════════════════════════
@@ -87,7 +75,7 @@ def main():
     print("[INFO] Preprocessing train split...")
     X_train_clean = preprocess_series(X_train_raw, verbose=False)
     print("[INFO] Preprocessing test split...")
-    X_test_clean  = preprocess_series(X_test_raw,  verbose=False)
+    X_test_clean = preprocess_series(X_test_raw, verbose=False)
 
     # Class imbalance check
     check_class_imbalance(y_train)
@@ -179,40 +167,13 @@ def main():
     comparison_df.to_csv(csv_path, index=False)
     print(f"\n[INFO] Comparison table saved → {csv_path}")
 
-    # Bias-variance commentary
-    print("\n── Bias-Variance & Overfitting Analysis ──────────────────────")
-    print("""
-  Logistic Regression (TF-IDF):
-    - Low bias, moderate variance.
-    - Regularisation (C parameter) prevents overfitting.
-    - Excellent linear separator for high-dimensional TF-IDF space.
-
-  Naive Bayes (BoW):
-    - High bias model (strong independence assumption).
-    - Very low variance; rarely overfits.
-    - Fast but may underfit on complex lexical patterns.
-
-  SVM (Linear TF-IDF):
-    - Typically the strongest classical model on text.
-    - Low bias, controlled variance via margin maximisation.
-    - Generalises well; minimal overfitting on sparse high-dim data.
-
-  Random Forest (TF-IDF):
-    - Ensemble reduces variance of individual trees.
-    - Can overfit on noisy high-dimensional sparse data if depth unconstrained.
-    - Slower than linear models but handles non-linear interactions.
-
-  Bidirectional LSTM:
-    - Highest model capacity – captures sequential context.
-    - Prone to overfitting without dropout, early stopping, LR scheduling.
-    - EarlyStopping + ReduceLROnPlateau callbacks mitigate this.
-    - Often achieves near-best accuracy but slower to train.
-    """)
+    # Save best model for dashboard (SVM typically performs best)
+    save_best_model(svm_model, tfidf_vectorizer, "svm")
 
     # ══════════════════════════════════════════════════════════════════════
-    #  STAGE 6 – Visualisations
+    #  STAGE 6 – Visualizations
     # ══════════════════════════════════════════════════════════════════════
-    banner("STAGE 6 – SAVING VISUALISATIONS")
+    banner("STAGE 6 – SAVING VISUALIZATIONS")
 
     plot_all_confusion_matrices(all_results)
     plot_model_comparison(comparison_df)
@@ -222,10 +183,18 @@ def main():
     # ══════════════════════════════════════════════════════════════════════
     elapsed = round(time.time() - start_total, 1)
     banner(f"PIPELINE COMPLETE — Total time: {elapsed}s")
-    print(f"\n  All outputs saved to → ./{OUTPUT_DIR}/\n")
-    print("  Files generated:")
+    print(f"\n  All outputs saved to → ./{OUTPUT_DIR}/")
+    print("\n  Files generated:")
     for f in sorted(os.listdir(OUTPUT_DIR)):
         print(f"    • {f}")
+    
+    print(f"\n  Models saved to → ./models/")
+    print("    • svm_model.pkl")
+    print("    • tfidf_vectorizer.pkl")
+    
+    print(f"\n🚀 To run the dashboard:")
+    print("   cd dashboard")
+    print("   streamlit run dashboard.py")
 
 
 if __name__ == "__main__":
