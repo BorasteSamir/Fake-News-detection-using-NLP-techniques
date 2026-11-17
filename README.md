@@ -48,8 +48,8 @@ fake-news-detection/
 ### 1. Clone the Repository
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/fake-news-detection.git
-cd fake-news-detection
+git clone https://github.com/BorasteSamir/Fake-News-detection-using-NLP-techniques.git
+cd Fake-News-detection-using-NLP-techniques
 ```
 
 ### 2. Set Up Environment
